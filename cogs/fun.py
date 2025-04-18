@@ -158,6 +158,18 @@ class Fun(commands.Cog, name="fun"):
         view = RockPaperScissorsView()
         await context.send("Please make your choice", view=view)
 
+    @commands.hybrid_command(
+        name="tippytap",
+        description="Does a little tippy tap.",
+    )
+    async def tippytap(self, context: Context) -> None:
+        """
+        Does a little tippy tap.
+
+        :param context: The hybrid command context.
+        """
+        await context.send("*Does a tippy tap aggressively*")
+
 
 async def setup(bot) -> None:
     await bot.add_cog(Fun(bot))
