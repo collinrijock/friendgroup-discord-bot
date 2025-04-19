@@ -12,6 +12,7 @@ import os
 import platform
 import random
 import sys
+import csv # Add csv import
 
 import aiosqlite
 import discord
@@ -168,10 +169,26 @@ class DiscordBot(commands.Bot):
     @tasks.loop(minutes=1.0)
     async def status_task(self) -> None:
         """
-        Setup the game status task of the bot.
+        Setup the game status task of the bot. Reads statuses from statuses.csv.
         """
-        statuses = ["with you!", "with Krypton!", "with humans!"]
-        await self.change_presence(activity=discord.Game(random.choice(statuses)))
+        statuses = []
+        status_file_path = f"{os.path.realpath(os.path.dirname(__file__))}/statuses.csv"
+        try:
+            with open(status_file_path, mode='r', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                # Read all rows into the statuses list, assuming one status per row
+                statuses = [row[0] for row in reader if row] # Ensure row is not empty
+            if not statuses:
+                self.logger.warning("statuses.csv is empty or could not be read properly. Using default status.")
+                statuses = ["Watching the server"] # Default status if file is empty or fails
+        except FileNotFoundError:
+            self.logger.error(f"statuses.csv not found at {status_file_path}. Using default status.")
+            statuses = ["Watching the server"] # Default status if file not found
+        except Exception as e:
+             self.logger.error(f"Error reading statuses.csv: {e}. Using default status.", exc_info=True)
+             statuses = ["Watching the server"] # Default status on other errors
+
+        await self.change_presence(activity=discord.CustomActivity(random.choice(statuses)))
 
     @status_task.before_loop
     async def before_status_task(self) -> None:
